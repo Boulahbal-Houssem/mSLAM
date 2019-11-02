@@ -4,32 +4,31 @@ from skimage.measure import ransac
 from skimage.transform import FundamentalMatrixTransform
 
 
-def getPos(kps1,kps2):
-        _, __, model = get_essential_m(kps1,kps2)
-        print(model.params)
-        R,t = extract_RT(model.params)
-        return R,t
-        
-def get_essential_m(kps1,kps2):
-        if(len(kps1)<8):
-                return kps1,kps2,None
-        data  = (kps1,kps2)
-        print(data[0].shape)
-        model, inliers = ransac(data,FundamentalMatrixTransform, min_samples=8,
-                                residual_threshold=1, max_trials=50)
-        inlier_keypoints_left = kps1[inliers]
-        inlier_keypoints_right = kps2[inliers]
-        print(model)
-        return inlier_keypoints_left, inlier_keypoints_right , model
+def update_frame(frame,kps1,kps2,K):
+        frame.pos = estimate_postion(kps1, kps2 , K[:3,:3])
+        frame.pts3d = triangulatePoints(frame.pos,K,kps1,kps2)
 
-def extract_RT(E):
-        W = np.mat([[0,-1,0],[1,0,0],[0,0,1]],dtype=float)
-        U,d,Vt = np.linalg.svd(E)
-        assert np.linalg.det(U) > 0
-        if np.linalg.det(Vt) < 0:
-                Vt *= -1.0
-        R = np.dot(np.dot(U, W), Vt)
-        if np.sum(R.diagonal()) < 0:
-                R = np.dot(np.dot(U, W.T), Vt)
-        t = U[:, 2]
-        return R, t
+def estimate_postion(kps1, kps2 , K):
+        kps1_norm = cv2.undistortPoints(np.expand_dims(kps1, axis=1), cameraMatrix=K, distCoeffs=None)
+        kps2_norm = cv2.undistortPoints(np.expand_dims(kps2, axis=1), cameraMatrix=K, distCoeffs=None)
+
+        E, mask = cv2.findEssentialMat(kps1_norm,kps2_norm, focal=1.0, pp=(0., 0.), method=cv2.RANSAC, prob=0.999, threshold=3.0)
+        points, R, t, mask = cv2.recoverPose(E, kps1_norm, kps2_norm)
+        ret = np.eye(4)
+        print(R)
+        print(t)
+        ret[:3,:3] =R
+        ret[0:3,3] = t.transpose()
+        print(ret)
+        return ret 
+def triangulatePoints(M_r,K,kps1,kps2):        
+        M_l = np.eye(4)
+        print(M_r)
+        print(K)
+        P_l = np.dot(K,  M_l)[:3,:4]
+        P_r = np.dot(K,  M_r)[:3,:4]
+        point_4d_hom = cv2.triangulatePoints(P_l, P_r, np.expand_dims(kps1, axis=1), np.expand_dims(kps2, axis=1))
+        point_4d = point_4d_hom / np.tile(point_4d_hom[-1, :], (4, 1))
+        point_3d = point_4d[:3, :].T
+        print(point_3d)
+        return point_3d
