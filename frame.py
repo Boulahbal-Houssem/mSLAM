@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 
 class Frame(object):
-    def __init__(self,img_path,kps=None,pos=np.eye(4),pts3d=None, dense3d = None):
+    def __init__(self,img_path,kps=None,pos=np.eye(4),pts3d=np.array([0.0, 0.0, 0.0]), dense3d = None):
         self.img_path   = img_path 
         self.kps   = kps
         self.pos   = pos

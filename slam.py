@@ -6,7 +6,8 @@ import position_estimator
 from frame import Frame
 import math
 import viewer
-cv2.namedWindow('disparity', cv2.WINDOW_NORMAL)
+from mapp import Mapp
+#cv2.namedWindow('disparity', cv2.WINDOW_NORMAL)
 
 
 
@@ -25,18 +26,10 @@ class SLAM(object):
         self.H = H//2
         self.Kinv = np.linalg.inv(self.K)
         self.features_extractor = FeaturesExtractor()
-        self.stereo = cv2.StereoSGBM_create(numDisparities =112,
-                                            blockSize = 16,
-                                            preFilterCap=4,
-                                            minDisparity=0,
-                                            P1 = 600,
-                                            P2 = 2400,
-                                            disp12MaxDiff = 10,
-                                            uniquenessRatio = 1,
-                                            speckleWindowSize = 150,
-                                            speckleRange = 2
-                                            )
-
+        self.stereo = cv2.StereoSGBM_create(numDisparities =112, blockSize = 16, preFilterCap=4, minDisparity=0,
+                                            P1 = 600, P2 = 2400, disp12MaxDiff = 10, uniquenessRatio = 1,
+                                            speckleWindowSize = 150, speckleRange = 2 )
+        self.slam_map = Mapp()
 
     def run(self):
         sequence = self.read_sequence(self.images_path)
@@ -44,12 +37,15 @@ class SLAM(object):
         for img_path in sequence:
             frames.append(Frame(img_path))
             self.get_pos(frames[-1])
-            viewer.display_frame(frames[-1])
             if(len(frames)>1):
-                disparity = self.stereo.compute(frames[-1].get_resized_image(),frames[-2].get_resized_image())
+                frames[-1].pos = np.array(frames[-1].pos.dot(frames[-2].pos))
+                viewer.display_frame(frames[-1])
+
+                '''disparity = self.stereo.compute(frames[-1].get_resized_image(),frames[-2].get_resized_image())
                 frames[-1].dense3d = disparity
-                print(disparity.shape)
-                cv2.imshow("disparity",disparity)
+                cv2.imshow("disparity",disparity)'''
+                self.slam_map.display_map(frames)
+
                 
 
 
@@ -88,3 +84,4 @@ if __name__ == "__main__":
     path = "./images/images/"
     mslam = SLAM(K,path,W,H)
     mslam.run()
+    cv2.destroyWindow("image") 

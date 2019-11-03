@@ -25,4 +25,4 @@ def triangulatePoints(M_r,K,kps1,kps2):
         point_4d_hom = cv2.triangulatePoints(P_l, P_r, np.expand_dims(kps1, axis=1), np.expand_dims(kps2, axis=1))
         point_4d = point_4d_hom / np.tile(point_4d_hom[-1, :], (4, 1))
         point_3d = point_4d[:3, :].T
-        return point_3d
+        return np.array(point_3d)
