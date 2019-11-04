@@ -1,6 +1,2 @@
----> fixing position estimation :
-		* camera intrinsics
-		* using scikit pos estimation
-		* triangulating 
-
----> reject points behind the camera
+---> start using the optimizer
+---> better pos estimation 
