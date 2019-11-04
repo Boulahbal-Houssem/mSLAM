@@ -37,11 +37,10 @@ class SLAM(object):
         while cap.isOpened():
             frames.append(Frame())
             _,image = cap.read()
-            image = cv2.resize(image, (self.W,self.H) )
-            
+            image = cv2.resize(image, (self.W,self.H) )    
             self.get_pos(frames[-1],image)
             if(len(frames)>1):
-                frames[-1].pos = np.array(frames[-1].pos.dot(frames[-2].pos))
+                frames[-1].pos = np.array(frames[-2].pos.dot(frames[-1].pos))
                 viewer.display_frame(frames[-1],image)
 
                 '''disparity = self.stereo.compute(frames[-1].get_resized_image(),frames[-2].get_resized_image())
