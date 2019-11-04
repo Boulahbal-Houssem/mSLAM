@@ -32,12 +32,16 @@ class SLAM(object):
         self.slam_map = Mapp()
 
     def run(self):
-        cap = cv2.VideoCapture("test_countryroad.mp4")
+        #cap = cv2.VideoCapture("test_countryroad.mp4")
         frames = [Frame(np.eye(4))]
-        while cap.isOpened():
+        path = self.read_sequence("./images/images/")
+        #while cap.isOpened():
+        for img in path:
             world_transformation = frames[-1].pos
             frames.append(Frame(world_transformation))
-            _,image = cap.read()
+            #_,image = cap.read()
+            image = cv2.imread(img)
+
             image = cv2.resize(image, (self.W,self.H) )    
 
             self.get_pos(frames[-1],image)
@@ -49,7 +53,14 @@ class SLAM(object):
             if(len(frames)>2):
                 self.slam_map.display_map(frames)
 
-
+    def read_sequence(self,path):
+        ret =[]
+        for name in os.listdir(path):
+            image_name  = path + name
+            ret.append(image_name)
+        ret.sort()
+        return ret
+        
     def get_pos(self,frame,image):
         # extract features
         keypt_old, keypt_new, _, __ = self.features_extractor.extract_features(image)
