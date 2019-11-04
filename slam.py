@@ -11,19 +11,19 @@ from mapp import Mapp
 
 
 
-def set_camera_intrinsics(fx,fy,cx,cy):
+def set_camera_intrinsics(fx,fy,cx,cy,W,H):
     K = np.eye(4)
-    K[0,0] = fx * (1280//2) 
-    K[1,1] = fy * (1024//2)
-    K[0,2] = cx * (1280//2) - 0.5  
-    K[1,2] = cy * (1024//2) - 0.5 
+    K[0,0] = fx * W 
+    K[1,1] = fy * H
+    K[0,2] = cx * W - 0.5  
+    K[1,2] = cy * H - 0.5 
     return K
 class SLAM(object):
     def __init__(self,k,images_path,W,H):
         self.K = k
         self.images_path = images_path
-        self.W = W//2
-        self.H = H//2
+        self.W = W
+        self.H = H
         self.Kinv = np.linalg.inv(self.K)
         self.features_extractor = FeaturesExtractor()
         self.stereo = cv2.StereoSGBM_create(numDisparities =112, blockSize = 16, preFilterCap=4, minDisparity=0,
@@ -32,35 +32,25 @@ class SLAM(object):
         self.slam_map = Mapp()
 
     def run(self):
-        sequence = self.read_sequence(self.images_path)
+        cap = cv2.VideoCapture("test_countryroad.mp4")
         frames = []
-        for img_path in sequence:
-            frames.append(Frame(img_path))
-            self.get_pos(frames[-1])
+        while cap.isOpened():
+            frames.append(Frame())
+            _,image = cap.read()
+            image = cv2.resize(image, (self.W,self.H) )
+            
+            self.get_pos(frames[-1],image)
             if(len(frames)>1):
                 frames[-1].pos = np.array(frames[-1].pos.dot(frames[-2].pos))
-                viewer.display_frame(frames[-1])
+                viewer.display_frame(frames[-1],image)
 
                 '''disparity = self.stereo.compute(frames[-1].get_resized_image(),frames[-2].get_resized_image())
                 frames[-1].dense3d = disparity
                 cv2.imshow("disparity",disparity)'''
                 self.slam_map.display_map(frames)
 
-                
 
-
-
-    def read_sequence(self,path):
-        ret =[]
-        for name in os.listdir(path):
-            image_name  = path + name
-            ret.append(image_name)
-        ret.sort()
-        return ret
-
-    def get_pos(self,frame):
-        image = cv2.imread(frame.img_path)
-        image = cv2.resize(image, (self.W,self.H) )
+    def get_pos(self,frame,image):
         # extract features
         keypt_old, keypt_new, _, __ = self.features_extractor.extract_features(image)
         frame.kps = keypt_new
@@ -78,9 +68,9 @@ class SLAM(object):
 
 
 if __name__ == "__main__":
-    K = set_camera_intrinsics(0.535719308086809, 0.669566858850269, 0.493248545285398, 0.500408664348414)
-    W = 1280
-    H = 1024
+    W = 1280//2
+    H = 1024//2
+    K = set_camera_intrinsics(0.535719308086809, 0.669566858850269, 0.493248545285398, 0.500408664348414,W,H)
     path = "./images/images/"
     mslam = SLAM(K,path,W,H)
     mslam.run()
