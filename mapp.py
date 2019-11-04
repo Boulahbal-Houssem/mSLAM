@@ -55,9 +55,8 @@ class Mapp(object):
     def display_map(self,frames):
         camera_pose = []
         point_3d    = []
-        for frame in frames[1:]:
+        for frame in frames:
             for pt in frame.pts3d:
                 point_3d.append(pt)
             camera_pose.append(frame.pos)
-        print(frame.pos)
         self.queue.put((np.array(point_3d), np.array(camera_pose)))

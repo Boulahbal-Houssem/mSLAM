@@ -33,19 +33,20 @@ class SLAM(object):
 
     def run(self):
         cap = cv2.VideoCapture("test_countryroad.mp4")
-        frames = []
+        frames = [Frame(np.eye(4))]
         while cap.isOpened():
-            frames.append(Frame())
+            world_transformation = frames[-1].pos
+            frames.append(Frame(world_transformation))
             _,image = cap.read()
             image = cv2.resize(image, (self.W,self.H) )    
-            self.get_pos(frames[-1],image)
-            if(len(frames)>1):
-                frames[-1].pos = np.array(frames[-2].pos.dot(frames[-1].pos))
-                viewer.display_frame(frames[-1],image)
 
-                '''disparity = self.stereo.compute(frames[-1].get_resized_image(),frames[-2].get_resized_image())
-                frames[-1].dense3d = disparity
-                cv2.imshow("disparity",disparity)'''
+            self.get_pos(frames[-1],image)
+            viewer.display_frame(frames[-1],image)
+
+            '''disparity = self.stereo.compute(frames[-1].get_resized_image(),frames[-2].get_resized_image())
+            frames[-1].dense3d = disparity
+            cv2.imshow("disparity",disparity)'''
+            if(len(frames)>2):
                 self.slam_map.display_map(frames)
 
 

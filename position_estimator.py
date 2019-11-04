@@ -3,10 +3,17 @@ import cv2
 from skimage.measure import ransac
 from skimage.transform import FundamentalMatrixTransform
 
+def add_ones(x):
+  return np.concatenate([x, np.ones((x.shape[0], 1))], axis=1)
 
 def update_frame(frame,kps1,kps2,K):
-        frame.pos = estimate_postion(kps1, kps2 , K[:3,:3])
-        frame.pts3d = triangulatePoints(frame.pos,K,kps1,kps2)
+        local_transform = estimate_postion(kps1, kps2 , K[:3,:3])
+        frame.pos = frame.world_transformation.dot(local_transform)
+
+        local_pts = triangulatePoints(frame.pos,K,kps1,kps2)
+        local_pts = add_ones(local_pts).T
+        frame.pts3d = frame.world_transformation.dot(local_pts).T[:,:3]
+
 
 def estimate_postion(kps1, kps2 , K):
         kps1_norm = cv2.undistortPoints(np.expand_dims(kps1, axis=1), cameraMatrix=K, distCoeffs=None)
