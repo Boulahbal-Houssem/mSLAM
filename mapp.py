@@ -23,12 +23,15 @@ class Mapp(object):
     def init_viewer(self,w=1024,h=768):
         pangolin.CreateWindowAndBind('Main', 640, 480)
         gl.glEnable(gl.GL_DEPTH_TEST)
+        self.tree = pangolin.Renderable()
         # Define Projection and initial ModelView matrix
         self.scam = pangolin.OpenGlRenderState(
             pangolin.ProjectionMatrix(w, h, 420, 420, 320, 240, 0.2, 200),
             pangolin.ModelViewLookAt(0, -10, -8,
                                      0, 0, 0,
                                     0, -1, 0))
+        self.tree.Add(pangolin.Axis())
+
         self.handler = pangolin.Handler3D(self.scam)
             # Create Interactive View in window
         self.dcam = pangolin.CreateDisplay()
@@ -42,14 +45,14 @@ class Mapp(object):
             gl.glClearColor(1.0, 1.0, 1.0, 1.0)
             self.dcam.Activate(self.scam)
 
-            gl.glPointSize(3)
+            gl.glPointSize(1)
             gl.glColor3f(1.0, 0.0, 0.0)
             pangolin.DrawPoints(self.state[0])
 
             gl.glPointSize(1)
             gl.glColor3f(0.0, 0.0, 1.0)
             pangolin.DrawCameras(self.state[1])
-
+            self.tree.Render()
             pangolin.FinishFrame()
  
     def display_map(self,frames):

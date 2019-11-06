@@ -33,15 +33,15 @@ class SLAM(object):
 
     def run(self):
         frames = [Frame(np.eye(4))]
-        #cap = cv2.VideoCapture("test_countryroad.mp4")
-        #while cap.isOpened():
-        path = self.read_sequence("./images/images/")
-        for img in path:
-            image = cv2.imread(img)
+        cap = cv2.VideoCapture("test_countryroad.mp4")
+        while cap.isOpened():
+        #path = self.read_sequence("./images/images/")
+        #for img in path:
+            #image = cv2.imread(img)
             
             world_transformation = frames[-1].pos
             frames.append(Frame(world_transformation))
-            #_,image = cap.read()
+            _,image = cap.read()
 
             image = cv2.resize(image, (self.W,self.H) )    
 
@@ -84,10 +84,10 @@ if __name__ == "__main__":
     H = 1024//2
     K = set_camera_intrinsics(0.535719308086809, 0.669566858850269, 0.493248545285398, 0.500408664348414,W,H)
 
-    """ W, H = 1920//2, 1080//2
+    W, H = 1920//2, 1080//2
     F = 270
     K = np.array([[F,0,W//2,0],[0,F,H//2,0],[0,0,1,0],[0,0,0,1]])
-    Kinv = np.linalg.inv(K) """
+    Kinv = np.linalg.inv(K)  
 
     path = "./images/images/"
     mslam = SLAM(K,path,W,H)

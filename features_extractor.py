@@ -17,7 +17,7 @@ class FeaturesExtractor():
         des_new   =[]
         # Detection of keypoints
         gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-        shi_thomasi_corner = cv2.goodFeaturesToTrack(gray,200,0.0001,10)
+        shi_thomasi_corner = cv2.goodFeaturesToTrack(gray,800,0.0001,10)
         kpts =[]
         for pt in shi_thomasi_corner:
             kpts.append(cv2.KeyPoint(pt[0][0], pt[0][1],1) )

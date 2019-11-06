@@ -11,10 +11,8 @@ def update_frame(frame,kps1,kps2,K):
         local_transform = estimate_postion(kps1, kps2 , K[:3,:3])
         frame.pos = frame.world_transformation.dot(local_transform)
 
-        local_pts = triangulatePoints(frame.pos,K,kps1,kps2)
-        local_pts = add_ones(local_pts).T
-        frame.pts3d = frame.world_transformation.dot(local_pts).T[:,:3]
-
+        local_pts = triangulatePoints(local_transform,K,kps1,kps2)
+        frame.pts3d = frame.pos.dot(local_pts).T[:,:3]                                                                                                                                                                                      
 
 def estimate_postion(kps1, kps2 , K):
         ret = np.eye(4)
@@ -24,7 +22,7 @@ def estimate_postion(kps1, kps2 , K):
                 return ret
         model, inliers = ransac(([kps1_norm[:,0,:],kps2_norm[:,0,:]]),
                                 EssentialMatrixTransform, min_samples=8,
-                                residual_threshold=1, max_trials=50)       
+                                residual_threshold=0.01, max_trials=50)       
         kps1 = kps1[inliers]
         kps2 = kps2[inliers]
 
@@ -32,17 +30,27 @@ def estimate_postion(kps1, kps2 , K):
         ret[:3,:3] =R
         ret[0:3,3] = t.transpose()
         
-        return ret 
+        return ret
+
+def triangulatePoints(M_r,K,kps1,kps2):        
+        M_l = np.eye(4)
+        P_l = np.dot(K,  M_l)[:3,:4]
+        P_r = np.dot(K,  M_r)[:3,:4]
+        point_4d_hom = cv2.triangulatePoints(P_l, P_r, np.expand_dims(kps1, axis=1), np.expand_dims(kps2, axis=1))
+        point_4d = point_4d_hom / np.tile(point_4d_hom[-1, :], (4, 1))
+        goodpts =  (point_4d[3,:] >0)  & (np.abs(point_4d[2,:]) >0.01)
+        print(goodpts.shape)
+        return np.array(point_4d.T[goodpts]).T
+
+'''
 def triangulatePoints(M_r,K,kps1,kps2):        
         M_l = np.eye(4)
         P_l = np.dot(K,  M_l)
         P_r = np.dot(K,  M_r)
-        point_4d_hom = triangulate(P_l, P_r,kps1,kps2)
-        print(point_4d_hom.shape)
+        point_4d_hom = cv2.triangulate(P_l, P_r,focal=1,kps1,kps2)
         point_4d_hom /= point_4d_hom[:,3:] 
-        point_3d = point_4d_hom[:3, :].T
-        good_pts = point_3d[:,2]>0 
-        return np.array(point_3d[good_pts])
+        good_pts = point_4d_hom[:,2]>0
+        return np.array(point_4d_hom).T
 
 def triangulate(pose1, pose2, pts1, pts2):
         ret = np.zeros((pts1.shape[0], 4))
@@ -57,3 +65,4 @@ def triangulate(pose1, pose2, pts1, pts2):
                 _, _, vt = np.linalg.svd(A)
                 ret[i] = vt[3]
         return ret
+'''
