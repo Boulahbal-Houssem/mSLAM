@@ -42,11 +42,11 @@ class Mapp(object):
         while(not self.queue.empty()):
             self.state = self.queue.get()
             gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
-            gl.glClearColor(1.0, 1.0, 1.0, 1.0)
+            gl.glClearColor(0, 0, 0, 0)
             self.dcam.Activate(self.scam)
 
             gl.glPointSize(1)
-            gl.glColor3f(1.0, 0.0, 0.0)
+            gl.glColor3f(1.0, 1.0,1.0)
             pangolin.DrawPoints(self.state[0])
 
             gl.glPointSize(1)
