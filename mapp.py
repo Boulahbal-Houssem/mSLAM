@@ -42,7 +42,7 @@ class Mapp(object):
             gl.glClearColor(1.0, 1.0, 1.0, 1.0)
             self.dcam.Activate(self.scam)
 
-            gl.glPointSize(1)
+            gl.glPointSize(3)
             gl.glColor3f(1.0, 0.0, 0.0)
             pangolin.DrawPoints(self.state[0])
 
