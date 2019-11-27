@@ -43,7 +43,7 @@ class SLAM(object):
             frames.append(Frame(world_transformation))
             _,image = cap.read()
 
-            image = cv2.resize(image, (self.W,self.H) )    
+            #image = cv2.resize(image, (self.W,self.H) )    
 
             self.get_pos(frames[-1],image)
             viewer.display_frame(frames[-1],image)
