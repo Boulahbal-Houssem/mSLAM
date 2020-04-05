@@ -1,8 +1,32 @@
 import OpenGL.GL as gl
 import pangolin
 import numpy as np
+from frame import Frame, Point
 from multiprocessing import Process, Queue
+
 class Mapp(object):
+    
+    def __init__(self):
+        self.pts = []
+        self.frames = []
+        self.viewer = MapViewer()
+
+    def addframe(self, kps=None):
+        if(len(self.frames) == 0):
+            world_transformation = np.eye(4)
+        else:
+            world_transformation = self.frames[-1].pos
+            
+        frameid  = len(self.frames)
+        frame = Frame(frameid,world_transformation)
+        self.frames.append(frame)    
+        
+    def display_map(self):
+        self.viewer.display_map(self.frames)
+        
+    
+
+class MapViewer(object):
     def __init__(self):
         self.queue = Queue()
         self.state = None
@@ -56,6 +80,8 @@ class Mapp(object):
             pangolin.FinishFrame()
  
     def display_map(self,frames):
+        if(len(frames) <3):
+            return 
         camera_pose = []
         point_3d    = []
         for frame in frames:

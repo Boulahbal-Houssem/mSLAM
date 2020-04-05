@@ -7,9 +7,9 @@ from skimage.transform import FundamentalMatrixTransform
 def add_ones(x):
   return np.concatenate([x, np.ones((x.shape[0], 1))], axis=1)
 
-def update_frame(frame,kps1,kps2,K):
+def update_frame(slammapp,kps1,kps2,K):
         local_transform = estimate_postion(kps1, kps2 , K[:3,:3])
-        frame.pos = frame.world_transformation.dot(local_transform)
+        frame.pos = slammapp.frame[-1].pos.dot(local_transform)
 
         local_pts = triangulatePoints(local_transform,K,kps1,kps2)
         frame.pts3d = frame.pos.dot(local_pts).T[:,:3]                                                                                                                                                                                      
